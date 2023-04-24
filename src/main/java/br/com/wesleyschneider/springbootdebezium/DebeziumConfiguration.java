@@ -19,11 +19,12 @@ public class DebeziumConfiguration {
                 .with("database.password", "Abcd1234")
                 .with("database.names", "OLD_DATABASE")
                 .with("database.encrypt", "false")
-                .with("snapshot.mode", "initial_only")
+                .with("snapshot.mode", "initial")
                 .with("topic.prefix", "seila")
                 .with("table.include.list", "dbo.Estudante")
                 .with("schema.history.internal", "io.debezium.storage.file.history.FileSchemaHistory")
                 .with("schema.history.internal.file.filename", "/tmp/schemaHistory.dat")
+                .with("include.schema.changes", "false")
                 .build();
     }
 }

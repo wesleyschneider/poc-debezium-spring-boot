@@ -4,13 +4,14 @@ GO
 USE NEW_DATABASE;
 GO
 
-CREATE TABLE Usuario (
-   cd_usuario integer identity primary key,
-   nome varchar(100),
-   nome_social varchar(100)
+CREATE TABLE usuario (
+    cd_usuario integer identity primary key,
+    nome varchar(100),
+    nome_social varchar(100),
+    cd_estudante integer
 );
 
-CREATE TABLE Usuario_email(
+CREATE TABLE usuario_email(
     cd_email integer identity primary key,
     email varchar(255),
     cd_usuario integer,

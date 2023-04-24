@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=NEW_DATABASE;encrypt=false
+    username: sa
+    password: Abcd1234
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    show-sql: true
