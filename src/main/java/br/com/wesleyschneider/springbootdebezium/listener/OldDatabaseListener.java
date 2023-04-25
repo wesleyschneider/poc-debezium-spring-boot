@@ -9,6 +9,7 @@ import io.debezium.engine.format.ChangeEventFormat;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.CaseUtils;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -64,7 +65,9 @@ public class OldDatabaseListener {
         Struct source = (Struct) sourceRecordChangeValue.get("source");
         String table = (String) source.get("table");
 
-        ModelService service = (ModelService) context.getBean(table+"Service");
+        String beanName = CaseUtils.toCamelCase(table, true, '_') + "Service";
+
+        ModelService service = (ModelService) context.getBean(beanName);
 
         service.execute(payload, operation);
     }
