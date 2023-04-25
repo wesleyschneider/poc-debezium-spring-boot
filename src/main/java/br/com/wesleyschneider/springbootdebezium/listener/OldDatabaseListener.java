@@ -1,6 +1,6 @@
-package br.com.wesleyschneider.springbootdebezium.listeners;
+package br.com.wesleyschneider.springbootdebezium.listener;
 
-import br.com.wesleyschneider.springbootdebezium.service.EstudanteService;
+import br.com.wesleyschneider.springbootdebezium.service.ModelService;
 import io.debezium.config.Configuration;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.DebeziumEngine;
@@ -13,6 +13,7 @@ import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -26,11 +27,12 @@ import static io.debezium.data.Envelope.Operation;
 
 @Component
 public class OldDatabaseListener {
+
     private final Executor executor = Executors.newSingleThreadExecutor();
-    private DebeziumEngine<RecordChangeEvent<SourceRecord>> debeziumEngine;
+    private final DebeziumEngine<RecordChangeEvent<SourceRecord>> debeziumEngine;
 
     @Autowired
-    private EstudanteService estudanteService;
+    private ApplicationContext context;
 
     public OldDatabaseListener(Configuration estudanteConnectorConfiguration) {
         this.debeziumEngine = DebeziumEngine
@@ -42,37 +44,29 @@ public class OldDatabaseListener {
     private void handleChange(RecordChangeEvent<SourceRecord> sourceRecordRecordChangeEvent) {
         Struct sourceRecordChangeValue = (Struct) sourceRecordRecordChangeEvent.record().value();
 
-        if (sourceRecordChangeValue != null) {
-            Operation operation = Operation.forCode((String) sourceRecordChangeValue.get(OPERATION));
+        if (sourceRecordChangeValue == null) return;
 
-            if (operation != Operation.READ) {
+        Operation operation = Operation.forCode((String) sourceRecordChangeValue.get(OPERATION));
 
-                // Get value changes
-                String record = operation == Operation.DELETE ? BEFORE : AFTER;
+        if (operation == Operation.READ) return;
 
-                Struct struct = (Struct) sourceRecordChangeValue.get(record);
-                Map<String, Object> payload = struct.schema().fields().stream()
+        String record = operation == Operation.DELETE ? BEFORE : AFTER;
+
+        // Get value changes
+        Struct struct = (Struct) sourceRecordChangeValue.get(record);
+        Map<String, Object> payload = struct.schema().fields().stream()
                         .map(Field::name)
                         .filter(fieldName -> struct.get(fieldName) != null)
                         .map(fieldName -> Pair.of(fieldName, struct.get(fieldName)))
                         .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
 
-                // Get table name
-                Struct source = (Struct) sourceRecordChangeValue.get("source");
-                String table = (String) source.get("table");
+        // Get table name
+        Struct source = (Struct) sourceRecordChangeValue.get("source");
+        String table = (String) source.get("table");
 
+        ModelService service = (ModelService) context.getBean(table+"Service");
 
-                if (table.equals("Estudante")) {
-                    switch (operation) {
-                        case CREATE -> estudanteService.create(payload);
-                        case UPDATE -> estudanteService.update(payload);
-                        case DELETE -> estudanteService.delete();
-                    }
-                }
-            }
-        }
-
-        System.out.println("Finalizou");
+        service.execute(payload, operation);
     }
 
     @PostConstruct

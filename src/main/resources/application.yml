@@ -6,3 +6,11 @@ spring:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     show-sql: true
+debezium:
+  database:
+    hostname: localhost
+    port: 1432
+    user: POC-CDC
+    password: Abcd1234
+    names: OLD_DATABASE
+    tableList: dbo.Estudante

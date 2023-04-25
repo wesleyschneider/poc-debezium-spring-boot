@@ -5,14 +5,15 @@ import br.com.wesleyschneider.springbootdebezium.model.new_database.UsuarioEmail
 import br.com.wesleyschneider.springbootdebezium.model.old_database.Estudante;
 import br.com.wesleyschneider.springbootdebezium.repository.UsuarioEmailRepository;
 import br.com.wesleyschneider.springbootdebezium.repository.UsuarioRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
-public class EstudanteService {
+@Service(value = "EstudanteService")
+public class EstudanteService extends BaseService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
@@ -21,7 +22,7 @@ public class EstudanteService {
 
     @Transactional
     public void create(Map<String, Object> payload) {
-        var estudante = getEstudante(payload);
+        var estudante = convertMapToEstudante(payload);
 
         var usuario = new Usuario();
 
@@ -30,7 +31,7 @@ public class EstudanteService {
 
     @Transactional
     public void update(Map<String, Object> payload) {
-        var estudante = getEstudante(payload);
+        var estudante = convertMapToEstudante(payload);
 
         var usuarioOptional = usuarioRepository.findByCdEstudante(estudante.getCdEstudante());
 
@@ -44,7 +45,7 @@ public class EstudanteService {
     }
 
     @Transactional
-    public void delete() {
+    public void delete(Map<String, Object> payload) {
 
     }
 
@@ -74,12 +75,8 @@ public class EstudanteService {
         usuarioEmailRepository.save(email);
     }
 
-    private Estudante getEstudante(Map<String, Object> payload) {
-        return new Estudante(
-                Integer.parseInt(payload.get("cd_estudante").toString()),
-                payload.get("nome").toString(),
-                payload.get("nome_social").toString(),
-                payload.get("email").toString()
-        );
+    private Estudante convertMapToEstudante(Map<String, Object> payload) {
+        final ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(payload, Estudante.class);
     }
 }
