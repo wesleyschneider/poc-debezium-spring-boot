@@ -25,12 +25,12 @@ public class DebeziumConfiguration {
     private String tableList;
 
     @Bean
-    public io.debezium.config.Configuration oldDatabaseConnector() {
+    public io.debezium.config.Configuration debeziumCdcDatabaseConnector() {
         return io.debezium.config.Configuration.create()
-                .with("name", "estudante-sqlserver-connector")
+                .with("name", "debezium-cdc-sqlserver-connector")
                 .with("connector.class", "io.debezium.connector.sqlserver.SqlServerConnector")
                 .with("offset.storage", "org.apache.kafka.connect.storage.FileOffsetBackingStore")
-                .with("offset.storage.file.filename", "/tmp/offsets.dat")
+                .with("offset.storage.file.filename", "/tmp/debezium-cdc/offsets.dat")
                 .with("offset.flush.interval.ms", "60000")
                 .with("database.hostname", hostname)
                 .with("database.port", port)
@@ -40,10 +40,11 @@ public class DebeziumConfiguration {
                 .with("database.encrypt", "false")
                 .with("table.include.list", tableList)
                 .with("snapshot.mode", "initial")
-                .with("topic.prefix", "seila")
+                .with("topic.prefix", "debezium_cdc")
                 .with("schema.history.internal", "io.debezium.storage.file.history.FileSchemaHistory")
-                .with("schema.history.internal.file.filename", "/tmp/schemaHistory.dat")
+                .with("schema.history.internal.file.filename", "/tmp/debezium-cdc/schemaHistory.dat")
                 .with("include.schema.changes", "false")
+                .with("time.precision.mode", "connect")
                 .build();
     }
 }
